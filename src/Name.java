@@ -2,12 +2,12 @@ import javax.swing.*;
 import java.awt.*;
 
 public class Name extends JPanel {
-    PepesPizza app;
+    PepesPizza gui;
     JTextField nameField;
     JButton next;
 
     public Name(PepesPizza app) {
-        this.app = app;
+        this.gui = app;
         setLayout(new BorderLayout());
 
         JPanel top = new JPanel();
@@ -22,8 +22,8 @@ public class Name extends JPanel {
         add(bottom, BorderLayout.SOUTH);
 
         next.addActionListener(e -> {
-            app.customerName = nameField.getText();
-            app.showPage("PizzaType");
+            gui.customerName = nameField.getText();
+            gui.showPage("PizzaType");
         });
     }
 

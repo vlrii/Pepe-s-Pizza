@@ -3,12 +3,12 @@ import java.awt.*;
 import java.util.Map;
 
 public class OrderSummary extends JPanel {
-    PepesPizza app;
+    PepesPizza gui;
     JTextArea summaryArea;
     JButton back, submit;
 
-    public OrderSummary(PepesPizza app) {
-        this.app = app;
+    public OrderSummary(PepesPizza gui) {
+        this.gui = this.gui;
         setLayout(new BorderLayout());
 
         summaryArea = new JTextArea();
@@ -22,13 +22,13 @@ public class OrderSummary extends JPanel {
         bottom.add(submit);
         add(bottom, BorderLayout.SOUTH);
 
-        back.addActionListener(e -> app.showPage("Ingredients"));
+        back.addActionListener(e -> gui.showPage("Ingredients"));
 
         submit.addActionListener(e -> {
-            JOptionPane.showMessageDialog(app, "Order placed");
-            app.currentOrder.clear();
-            app.customerName = "";
-            app.showPage("Name");
+            JOptionPane.showMessageDialog(gui, "Order placed");
+            gui.currentOrder.clear();
+            gui.customerName = "";
+            gui.showPage("Name");
         });
     }
 

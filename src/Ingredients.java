@@ -3,13 +3,13 @@ import java.awt.*;
 import java.util.*;
 
 public class Ingredients extends JPanel {
-    PepesPizza app;
+    PepesPizza gui;
     Map<String, ButtonGroup> ingredientGroups;
     ButtonGroup crustGroup, sizeGroup;
     JPanel centerPanel;
 
-    public Ingredients(PepesPizza app) {
-        this.app = app;
+    public Ingredients(PepesPizza gui) {
+        this.gui = gui;
         setLayout(new BorderLayout());
 
         centerPanel = new JPanel();
@@ -23,11 +23,11 @@ public class Ingredients extends JPanel {
         bottom.add(submit);
         add(bottom, BorderLayout.SOUTH);
 
-        back.addActionListener(e -> app.showPage("PizzaType"));
+        back.addActionListener(e -> gui.showPage("PizzaType"));
         submit.addActionListener(e -> {
             saveSelections();
-            app.orderSummaryPage.showSummary(app.customerName, app.selectedPizza, app.currentOrder);
-            app.showPage("OrderSummary");
+            gui.orderSummaryPage.showSummary(gui.customerName, gui.selectedPizza, gui.currentOrder);
+            gui.showPage("OrderSummary");
         });
     }
 
@@ -116,14 +116,14 @@ public class Ingredients extends JPanel {
             ButtonGroup g = ingredientGroups.get(ing);
             for (Enumeration<AbstractButton> e = g.getElements(); e.hasMoreElements(); ) {
                 JRadioButton b = (JRadioButton) e.nextElement();
-                if (b.isSelected()) app.currentOrder.put(ing, b.getText());
+                if (b.isSelected()) gui.currentOrder.put(ing, b.getText());
             }
         }
         for (Enumeration<AbstractButton> e = crustGroup.getElements(); e.hasMoreElements(); ) {
-            JRadioButton b = (JRadioButton) e.nextElement(); if (b.isSelected()) app.currentOrder.put("Crust", b.getText());
+            JRadioButton b = (JRadioButton) e.nextElement(); if (b.isSelected()) gui.currentOrder.put("Crust", b.getText());
         }
         for (Enumeration<AbstractButton> e = sizeGroup.getElements(); e.hasMoreElements(); ) {
-            JRadioButton b = (JRadioButton) e.nextElement(); if (b.isSelected()) app.currentOrder.put("Size", b.getText());
+            JRadioButton b = (JRadioButton) e.nextElement(); if (b.isSelected()) gui.currentOrder.put("Size", b.getText());
         }
     }
 }

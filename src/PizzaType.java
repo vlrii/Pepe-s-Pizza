@@ -2,7 +2,7 @@ import javax.swing.*;
 import java.awt.*;
 
 public class PizzaType extends JPanel {
-    public PizzaType(PepesPizza app) {
+    public PizzaType(PepesPizza gui) {
         setLayout(new GridLayout(5, 1));
         add(new JLabel("Order:", SwingConstants.CENTER));
 
@@ -10,10 +10,10 @@ public class PizzaType extends JPanel {
         for (String pizza : pizzas) {
             JButton btn = new JButton(pizza);
             btn.addActionListener(e -> {
-                app.selectedPizza = pizza;
-                app.currentOrder = app.ingredientsPage.getPizzaDefaults(pizza);
-                app.ingredientsPage.loadPizza(app.selectedPizza, app.currentOrder);
-                app.showPage("Ingredients");
+                gui.selectedPizza = pizza;
+                gui.currentOrder = gui.ingredientsPage.getPizzaDefaults(pizza);
+                gui.ingredientsPage.loadPizza(gui.selectedPizza, gui.currentOrder);
+                gui.showPage("Ingredients");
             });
             add(btn);
         }
