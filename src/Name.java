@@ -1,0 +1,36 @@
+import javax.swing.*;
+import java.awt.*;
+
+public class Name extends JPanel {
+    PepesPizza app;
+    JTextField nameField;
+    JButton next;
+
+    public Name(PepesPizza app) {
+        this.app = app;
+        setLayout(new BorderLayout());
+
+        JPanel top = new JPanel();
+        top.add(new JLabel("Name:"));
+        nameField = new JTextField(15);
+        top.add(nameField);
+        add(top, BorderLayout.CENTER);
+
+        JPanel bottom = new JPanel();
+        next = new JButton("Next");
+        bottom.add(next);
+        add(bottom, BorderLayout.SOUTH);
+
+        next.addActionListener(e -> {
+            app.customerName = nameField.getText();
+            app.showPage("PizzaType");
+        });
+    }
+
+    public void clearName() {
+        nameField.setText("");
+    }
+}
+
+
+
