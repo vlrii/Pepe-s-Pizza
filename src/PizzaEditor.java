@@ -1,161 +1,160 @@
 import javax.swing.*;
 import java.awt.*;
-import java.util.List;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 
 public class PizzaEditor extends JFrame {
     private DefaultListModel<Pizza> pizzaListModel = new DefaultListModel<>();
     private JList<Pizza> pizzaJList = new JList<>(pizzaListModel);
-    private JPanel ingredientPanel = new JPanel(new GridLayout(0, 1));
+    private JPanel ingredientPanel = new JPanel();
     private JLabel currentPizzaPriceLabel = new JLabel("Current Pizza: $0.00");
     private JLabel totalPriceLabel = new JLabel("Total: $0.00");
     private JLabel totalTimeLabel = new JLabel("Estimated Time: 0 min");
+    private JSpinner quantitySpinner = new JSpinner(new SpinnerNumberModel(1, 1, 10, 1));
     private Order order;
     private Pizza currentPizza;
+    private DecimalFormat money = new DecimalFormat("0.00");
 
     public PizzaEditor(Order order) {
         this.order = order;
-
-        setTitle("Pizza Editor - " + order.getCustomerName());
+        setTitle("Pizza Builder - " + order.getCustomerName());
+        setSize(1000, 700);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(900, 600);
-        setLayout(new BorderLayout());
+        setLayout(new BorderLayout(10, 10));
 
-        pizzaJList.setCellRenderer(new PizzaCellRenderer());
-        pizzaJList.addListSelectionListener(e -> {
-            if (!e.getValueIsAdjusting()) {
-                Pizza selected = pizzaJList.getSelectedValue();
-                if (selected != null) loadPizza(selected);
-            }
-        });
+        JPanel presetPanel = new JPanel();
+        presetPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 10, 10));
+        String[] presets = {"Cheese","Pepperoni","Sausage","Meat Lovers","Veggie","Hawaiian","Chicken Bacon Ranch","Custom"};
+        for (String name : presets) {
+            JButton btn = new JButton(name);
+            btn.setPreferredSize(new Dimension(160,40));
+            btn.setFont(new Font("Arial", Font.PLAIN, 14));
+            btn.addActionListener(e -> createPreset(name));
+            presetPanel.add(btn);
+        }
+        add(presetPanel, BorderLayout.NORTH);
 
-        JScrollPane pizzaScroll = new JScrollPane(pizzaJList);
-        pizzaScroll.setPreferredSize(new Dimension(300, 400));
+        JPanel middlePanel = new JPanel(new GridLayout(1,2,10,0));
 
-        JPanel leftPanel = new JPanel(new BorderLayout());
-        leftPanel.add(pizzaScroll, BorderLayout.CENTER);
-
-        JPanel orderSummaryPanel = new JPanel(new GridLayout(0, 1));
-        orderSummaryPanel.add(totalPriceLabel);
-        orderSummaryPanel.add(totalTimeLabel);
-        leftPanel.add(orderSummaryPanel, BorderLayout.SOUTH);
-
-        add(leftPanel, BorderLayout.WEST);
-
+        ingredientPanel.setLayout(new BoxLayout(ingredientPanel, BoxLayout.Y_AXIS));
         JScrollPane ingredientScroll = new JScrollPane(ingredientPanel);
-        add(ingredientScroll, BorderLayout.CENTER);
+        ingredientScroll.setBorder(BorderFactory.createTitledBorder("Customize Pizza"));
+        middlePanel.add(ingredientScroll);
 
-        JPanel presetPanel = new JPanel(new GridLayout(0, 1));
-        addPresetButton(presetPanel, "Cheese");
-        addPresetButton(presetPanel, "Pepperoni");
-        addPresetButton(presetPanel, "Sausage");
-        addPresetButton(presetPanel, "Meat Lovers");
-        addPresetButton(presetPanel, "Veggie");
-        addPresetButton(presetPanel, "Custom");
-        add(presetPanel, BorderLayout.EAST);
+        JPanel rightPanel = new JPanel();
+        rightPanel.setLayout(new BoxLayout(rightPanel, BoxLayout.Y_AXIS));
+        rightPanel.setBorder(BorderFactory.createTitledBorder("Pizza Info"));
 
-        JPanel buttonPanel = new JPanel(new GridLayout(0, 1));
-        JButton addPizzaButton = new JButton("Add Pizza");
-        addPizzaButton.addActionListener(e -> addCurrentPizza());
-        buttonPanel.add(addPizzaButton);
+        Font labelFont = new Font("Arial", Font.PLAIN, 14);
+        currentPizzaPriceLabel.setFont(new Font("Arial", Font.BOLD, 16));
+        totalPriceLabel.setFont(new Font("Arial", Font.BOLD, 16));
+        totalTimeLabel.setFont(new Font("Arial", Font.BOLD, 16));
 
-        JButton removePizzaButton = new JButton("Remove Pizza");
-        removePizzaButton.addActionListener(e -> removeSelectedPizza());
-        buttonPanel.add(removePizzaButton);
+        currentPizzaPriceLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        totalPriceLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        totalTimeLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        quantitySpinner.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        add(buttonPanel, BorderLayout.SOUTH);
+        rightPanel.add(Box.createVerticalStrut(20));
+        rightPanel.add(currentPizzaPriceLabel);
+        rightPanel.add(Box.createVerticalStrut(15));
+        rightPanel.add(totalPriceLabel);
+        rightPanel.add(Box.createVerticalStrut(15));
+        rightPanel.add(totalTimeLabel);
+        rightPanel.add(Box.createVerticalStrut(15));
 
-        JButton submitButton = new JButton("Submit Order");
-        submitButton.addActionListener(e -> {
-            StringBuilder summary = new StringBuilder();
-            summary.append("Name: ").append(order.getCustomerName()).append("\n\n");
-            for (Pizza pizza : order.getPizzas()) {
-                summary.append(pizza.getName())
-                        .append(" (").append(pizza.getSize())
-                        .append(", ").append(pizza.getCrust()).append(") - $")
-                        .append(String.format("%.2f", pizza.calculatePrice()))
-                        .append("\nToppings: ");
-                for (Ingredient ing : pizza.getIngredients()) {
-                    if (!ing.getLevel().equals("None")) {
-                        summary.append(ing.getName())
-                                .append(" (").append(ing.getLevel()).append(") ");
-                    }
-                }
-                summary.append("\n\n");
-            }
-            summary.append("Total: $").append(String.format("%.2f", order.getTotalPrice()))
-                    .append("\nEstimated Time: ").append(order.getTotalWaitTime()).append(" min");
+        JPanel qtyPanel = new JPanel();
+        qtyPanel.add(new JLabel("Quantity:"));
+        quantitySpinner.setPreferredSize(new Dimension(50,25));
+        qtyPanel.add(quantitySpinner);
+        qtyPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        rightPanel.add(qtyPanel);
+        rightPanel.add(Box.createVerticalStrut(20));
 
-            JOptionPane.showMessageDialog(this, summary.toString(), "Order Confirmed", JOptionPane.INFORMATION_MESSAGE);
-            dispose();
-            new NamePage();
-        });
-        add(submitButton, BorderLayout.NORTH);
+        JButton addBtn = new JButton("Add Pizza");
+        JButton removeBtn = new JButton("Remove Pizza");
+        JButton submitBtn = new JButton("Submit Order");
+
+        addBtn.setFont(labelFont);
+        removeBtn.setFont(labelFont);
+        submitBtn.setFont(labelFont);
+
+        addBtn.setMaximumSize(new Dimension(200,40));
+        removeBtn.setMaximumSize(new Dimension(200,40));
+        submitBtn.setMaximumSize(new Dimension(200,40));
+
+        addBtn.setAlignmentX(Component.CENTER_ALIGNMENT);
+        removeBtn.setAlignmentX(Component.CENTER_ALIGNMENT);
+        submitBtn.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        addBtn.addActionListener(e -> addPizza());
+        removeBtn.addActionListener(e -> removePizza());
+        submitBtn.addActionListener(e -> submitOrder());
+
+        rightPanel.add(addBtn);
+        rightPanel.add(Box.createVerticalStrut(10));
+        rightPanel.add(removeBtn);
+        rightPanel.add(Box.createVerticalStrut(10));
+        rightPanel.add(submitBtn);
+
+        middlePanel.add(rightPanel);
+        add(middlePanel, BorderLayout.CENTER);
+
+        JScrollPane orderScroll = new JScrollPane(pizzaJList);
+        orderScroll.setBorder(BorderFactory.createTitledBorder("Your Order"));
+        orderScroll.setPreferredSize(new Dimension(950,180));
+        pizzaJList.setCellRenderer(new PizzaCellRenderer());
+        add(orderScroll, BorderLayout.SOUTH);
 
         setVisible(true);
     }
 
-    private void addPresetButton(JPanel panel, String name) {
-        JButton btn = new JButton(name);
-        btn.addActionListener(e -> createPizzaFromPreset(name));
-        panel.add(btn);
-    }
+    private void createPreset(String name) {
+        Pizza p = new Pizza(name);
+        ArrayList<String> relevant = new ArrayList<>();
+        Ingredient sauce = new Ingredient("Tomato Sauce",2.0);
 
-    private void createPizzaFromPreset(String name) {
-        Pizza pizza = new Pizza(name);
-        pizza.setCrust("Thick");
-        pizza.setSize("Medium");
-
-        List<Ingredient> ingredients = new ArrayList<>();
-        switch (name.toLowerCase()) {
-            case "cheese":
-                ingredients.add(new Ingredient("Cheese", 2.0));
-                break;
-            case "pepperoni":
-                ingredients.add(new Ingredient("Cheese", 2.0));
-                ingredients.add(new Ingredient("Pepperoni", 2.5));
-                break;
-            case "sausage":
-                ingredients.add(new Ingredient("Cheese", 2.0));
-                ingredients.add(new Ingredient("Sausage", 2.5));
-                break;
-            case "meat lovers":
-                ingredients.add(new Ingredient("Cheese", 2.0));
-                ingredients.add(new Ingredient("Pepperoni", 2.5));
-                ingredients.add(new Ingredient("Sausage", 2.5));
-                ingredients.add(new Ingredient("Bacon", 2.5));
-                break;
-            case "veggie":
-                ingredients.add(new Ingredient("Cheese", 2.0));
-                ingredients.add(new Ingredient("Mushroom", 1.5));
-                ingredients.add(new Ingredient("Olives", 1.5));
-                ingredients.add(new Ingredient("Peppers", 1.5));
-                break;
-            case "custom":
-                String[] allToppings = {"Cheese","Pepperoni","Sausage","Bacon","Mushroom","Olives","Peppers"};
-                for (String t : allToppings) {
-                    Ingredient ing = new Ingredient(t, t.equals("Cheese") ? 2.0 : 2.5);
-                    if (t.equals("Cheese")) ing.setLevel("Regular");
-                    else ing.setLevel("None");
-                    ingredients.add(ing);
+        switch(name) {
+            case "Cheese": relevant.add("Cheese"); break;
+            case "Pepperoni": relevant.add("Cheese"); relevant.add("Pepperoni"); break;
+            case "Sausage": relevant.add("Cheese"); relevant.add("Sausage"); break;
+            case "Meat Lovers": relevant.add("Cheese"); relevant.add("Pepperoni"); relevant.add("Sausage"); relevant.add("Bacon"); break;
+            case "Veggie": relevant.add("Cheese"); relevant.add("Mushroom"); relevant.add("Olives"); relevant.add("Peppers"); break;
+            case "Hawaiian": relevant.add("Cheese"); relevant.add("Ham"); relevant.add("Pineapple"); break;
+            case "Chicken Bacon Ranch": relevant.add("Cheese"); relevant.add("Chicken"); relevant.add("Bacon"); sauce = new Ingredient("Ranch",2.0); break;
+            case "Custom":
+                String[] all = {"Cheese","Pepperoni","Sausage","Bacon","Mushroom","Olives","Peppers","Ham","Pineapple","Chicken"};
+                for (String t : all) {
+                    Ingredient ing = new Ingredient(t,t.equals("Cheese")?2.0:2.5);
+                    ing.setLevel(t.equals("Cheese")?"Regular":"None");
+                    p.addIngredient(ing);
                 }
-                break;
+                relevant.clear();
+                loadPizza(p,relevant,sauce);
+                return;
         }
-        for (Ingredient ing : ingredients) pizza.addIngredient(ing);
-        loadPizza(pizza);
+
+        for(String t : relevant) {
+            Ingredient ing = new Ingredient(t,t.equals("Cheese")?2.0:2.5);
+            ing.setLevel("Regular");
+            p.addIngredient(ing);
+        }
+        p.setSauce(sauce);
+        p.setQuantity(1);
+        quantitySpinner.setValue(1);
+        loadPizza(p,relevant,sauce);
     }
 
-    private void loadPizza(Pizza pizza) {
-        currentPizza = pizza;
+    private void loadPizza(Pizza p, ArrayList<String> relevant, Ingredient sauce) {
+        currentPizza = p;
         ingredientPanel.removeAll();
 
         JPanel sizePanel = new JPanel();
         sizePanel.add(new JLabel("Size:"));
         ButtonGroup sizeGroup = new ButtonGroup();
-        for (String s : new String[]{"Small","Medium","Large"}) {
-            JRadioButton rb = new JRadioButton(s);
-            rb.setSelected(s.equals(pizza.getSize()));
-            rb.addActionListener(e -> { currentPizza.setSize(s); updatePriceAndTime(); });
+        for(String s : new String[]{"Small","Medium","Large"}) {
+            JRadioButton rb = new JRadioButton(s, s.equals(p.getSize()));
+            rb.addActionListener(e -> { p.setSize(s); updateLabels(); });
             sizeGroup.add(rb);
             sizePanel.add(rb);
         }
@@ -164,80 +163,122 @@ public class PizzaEditor extends JFrame {
         JPanel crustPanel = new JPanel();
         crustPanel.add(new JLabel("Crust:"));
         ButtonGroup crustGroup = new ButtonGroup();
-        for (String c : new String[]{"Thin","Thick"}) {
-            JRadioButton rb = new JRadioButton(c);
-            rb.setSelected(c.equals(pizza.getCrust()));
-            rb.addActionListener(e -> { currentPizza.setCrust(c); updatePriceAndTime(); });
+        for(String c : new String[]{"Thin","Thick"}) {
+            JRadioButton rb = new JRadioButton(c, c.equals(p.getCrust()));
+            rb.addActionListener(e -> { p.setCrust(c); updateLabels(); });
             crustGroup.add(rb);
             crustPanel.add(rb);
         }
         ingredientPanel.add(crustPanel);
 
-        for (Ingredient ing : pizza.getIngredients()) {
-            JPanel radioPanel = new JPanel();
-            radioPanel.add(new JLabel(ing.getName()));
-            ButtonGroup group = new ButtonGroup();
-            for (String level : new String[]{"None","Light","Regular","Extra"}) {
-                JRadioButton rb = new JRadioButton(level);
-                rb.setSelected(level.equals(ing.getLevel()));
-                rb.addActionListener(e -> { ing.setLevel(level); updatePriceAndTime(); });
-                group.add(rb);
-                radioPanel.add(rb);
+        JPanel sauceTypePanel = new JPanel();
+        sauceTypePanel.add(new JLabel("Sauce Type:"));
+        ButtonGroup stGroup = new ButtonGroup();
+        for(String type : new String[]{"Tomato Sauce","BBQ Sauce","Ranch"}) {
+            JRadioButton rb = new JRadioButton(type, sauce.getName().equals(type));
+            rb.addActionListener(e -> { currentPizza.setSauce(new Ingredient(type,2.0)); updateLabels(); });
+            stGroup.add(rb);
+            sauceTypePanel.add(rb);
+        }
+        ingredientPanel.add(sauceTypePanel);
+
+        JPanel sauceLevelPanel = new JPanel();
+        sauceLevelPanel.add(new JLabel("Sauce:"));
+        ButtonGroup slGroup = new ButtonGroup();
+        for(String lvl : new String[]{"None","Light","Regular","Extra"}) {
+            JRadioButton rb = new JRadioButton(lvl, lvl.equals(sauce.getLevel()));
+            rb.addActionListener(e -> { currentPizza.getSauce().setLevel(lvl); updateLabels(); });
+            slGroup.add(rb);
+            sauceLevelPanel.add(rb);
+        }
+        ingredientPanel.add(sauceLevelPanel);
+
+        for(Ingredient ing : p.getIngredients()) {
+            if(!relevant.isEmpty() && !relevant.contains(ing.getName())) continue;
+            JPanel ingPanel = new JPanel();
+            ingPanel.add(new JLabel(ing.getName()+":"));
+            ButtonGroup g = new ButtonGroup();
+            for(String lvl : new String[]{"None","Light","Regular","Extra"}) {
+                JRadioButton rb = new JRadioButton(lvl, lvl.equals(ing.getLevel()));
+                rb.addActionListener(e -> { ing.setLevel(lvl); updateLabels(); });
+                g.add(rb);
+                ingPanel.add(rb);
             }
-            ingredientPanel.add(radioPanel);
+            ingredientPanel.add(ingPanel);
         }
 
-        ingredientPanel.add(currentPizzaPriceLabel);
         ingredientPanel.revalidate();
         ingredientPanel.repaint();
-        updatePriceAndTime();
+        updateLabels();
     }
 
-    private void addCurrentPizza() {
-        if (currentPizza != null) {
-            Pizza newPizza = currentPizza.clone();
-            order.addPizza(newPizza);
-            pizzaListModel.addElement(newPizza);
-            updatePriceAndTime();
+    private void addPizza() {
+        if(currentPizza != null) {
+            Pizza copy = currentPizza.clone();
+            copy.setQuantity((Integer) quantitySpinner.getValue());
+            order.addPizza(copy);
+            pizzaListModel.addElement(copy);
+            quantitySpinner.setValue(1);
+            updateLabels();
         }
     }
 
-    private void removeSelectedPizza() {
-        Pizza pizza = pizzaJList.getSelectedValue();
-        if (pizza != null) {
-            order.removePizza(pizza);
-            pizzaListModel.removeElement(pizza);
-            updatePriceAndTime();
+    private void removePizza() {
+        Pizza p = pizzaJList.getSelectedValue();
+        if(p != null) {
+            order.removePizza(p);
+            pizzaListModel.removeElement(p);
+            updateLabels();
         }
     }
 
-    private void updatePriceAndTime() {
-        if (currentPizza != null)
-            currentPizzaPriceLabel.setText(String.format("Current Pizza: $%.2f", currentPizza.calculatePrice()));
-        else
-            currentPizzaPriceLabel.setText("Current Pizza: $0.00");
+    private void submitOrder() {
+        new ReceiptPage(order);
+        dispose();
+    }
 
-        totalPriceLabel.setText(String.format("Total: $%.2f", order.getTotalPrice()));
-        totalTimeLabel.setText("Estimated Time: " + order.getTotalWaitTime() + " min");
+    private void updateLabels() {
+        if(currentPizza != null)
+            currentPizzaPriceLabel.setText("Current Pizza: $"+money.format(currentPizza.calculatePrice()));
+        totalPriceLabel.setText("Total: $"+money.format(order.getTotalPrice()));
+        totalTimeLabel.setText("Estimated Time: "+order.getTotalWaitTime()+" min");
         pizzaJList.repaint();
     }
 
     private class PizzaCellRenderer extends JLabel implements ListCellRenderer<Pizza> {
         @Override
-        public Component getListCellRendererComponent(JList<? extends Pizza> list, Pizza value, int index, boolean isSelected, boolean cellHasFocus) {
-            StringBuilder toppings = new StringBuilder();
-            for (Ingredient ing : value.getIngredients()) {
-                if (!ing.getLevel().equals("None")) {
-                    toppings.append(ing.getName())
-                            .append("(")
-                            .append(ing.getLevel())
-                            .append(") ");
+        public Component getListCellRendererComponent(JList<? extends Pizza> list, Pizza pizza, int index, boolean isSelected, boolean cellHasFocus) {
+            String text = pizza.getQuantity() + "x " + pizza.getName() + " (" + pizza.getSize() + ", " + pizza.getCrust() + ") - $" + money.format(pizza.calculatePrice());
+            ArrayList<String> toppingsList = new ArrayList<>();
+            for (Ingredient ing : pizza.getIngredients()) {
+                String name = ing.getName();
+                String level = ing.getLevel();
+                if (!name.equals("Cheese") || !level.equals("Regular")) {
+                    switch (level) {
+                        case "None": toppingsList.add("No " + name); break;
+                        case "Light": toppingsList.add("Light " + name); break;
+                        case "Regular": toppingsList.add(name); break;
+                        case "Extra": toppingsList.add("Extra " + name); break;
+                    }
                 }
             }
-            setText(String.format("%s (%s, %s) - $%.2f", value.getName(), value.getSize(), value.getCrust(), value.calculatePrice()));
-            if (toppings.length() > 0) setText(getText() + " | " + toppings.toString().trim());
+            if (pizza.getSauce() != null) {
+                String sName = pizza.getSauce().getName();
+                String sLevel = pizza.getSauce().getLevel();
+                switch (sLevel) {
+                    case "None": toppingsList.add("No " + sName); break;
+                    case "Light": toppingsList.add("Light " + sName); break;
+                    case "Regular": toppingsList.add(sName); break;
+                    case "Extra": toppingsList.add("Extra " + sName); break;
+                }
+            }
+            if (!toppingsList.isEmpty()) {
+                text += " | " + String.join(", ", toppingsList);
+            }
+            setText(text);
             setOpaque(true);
             setBackground(isSelected ? Color.LIGHT_GRAY : Color.WHITE);
+            setFont(new Font("Arial", Font.PLAIN, 14));
             return this;
         }
     }

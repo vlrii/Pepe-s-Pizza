@@ -32,4 +32,9 @@ public class Ingredient implements Cloneable {
         copy.setLevel(level);
         return copy;
     }
+
+    @Override
+    public String toString() {
+        return name + " (" + level + ")";
+    }
 }
